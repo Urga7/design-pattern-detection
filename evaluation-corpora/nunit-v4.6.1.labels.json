@@ -1,0 +1,34 @@
+{
+  "units": [
+    {
+      "path": "src/NUnitFramework/framework/Internal/Commands",
+      "patterns": ["Decorator"],
+      "notes": "TestCommand is the Component, declaring abstract TestResult Execute(TestExecutionContext); EmptyTestCommand, SkipCommand and TestMethodCommand are the undecorated ConcreteComponents. DelegatingTestCommand is the abstract Decorator - it holds the single wrapped TestCommand innerCommand - and BeforeAndAfterTestCommand, BeforeTestCommand, AfterTestCommand, MaxTimeCommand, TimeoutCommand, CancelAfterCommand, SetUpTearDownCommand and TheoryResultCommand override Execute to run their own work around innerCommand.Execute(context), stacking one on top of another. No Command label: the request object is here but nothing in this unit stores a TestCommand to trigger later - SimpleWorkItem, in Internal/Execution, builds one into a local variable - so the Invoker is missing and rule 3 applies."
+    },
+    {
+      "path": "src/NUnitFramework/framework/Internal/Execution",
+      "patterns": ["Composite", "Template Method"],
+      "notes": "Composite: WorkItem is the Component with the abstract PerformWork step, CompositeWorkItem holds List<WorkItem> Children and runs each of them (recursing through nested suites), and SimpleWorkItem is the leaf that executes one test. Template Method: WorkItem.Execute() is the skeleton - set up the context, mark the item running, dispatch, report the result - deferring only protected abstract void PerformWork(), which both subclasses supply."
+    },
+    {
+      "path": "src/NUnitFramework/framework/Internal/Tests",
+      "patterns": [],
+      "notes": "Empty by rule 3, not rule 4: TestSuite is plainly a Composite over Test/TestMethod, but its children are List<ITest> and the abstract Tests property returns IList<ITest>, so the Component participant is ITest from framework/Interfaces - a useful contrast with Internal/Execution, where the same shape typed as the in-unit WorkItem is labelled and found. Deliberately carries no Template Method label either: Test.ToXml(bool) does pair a concrete method with the abstract AddToXml(TNode, bool), but its whole body is 'return AddToXml(new TNode(\"dummy\"), recursive)' - a forwarding overload supplying a throwaway parent, with no algorithm skeleton and no sequence of steps to defer. Detections here score as false positives."
+    },
+    {
+      "path": "src/NUnitFramework/framework/Internal/Filters",
+      "patterns": ["Template Method"],
+      "notes": "Twice, both through the XML-writing side. ValueMatchFilter.AddToXml is concrete and defers protected abstract string ElementName, supplied by CategoryFilter, ClassNameFilter, FullNameFilter, IdFilter, MethodNameFilter, NamespaceFilter, PropertyFilter and TestNameFilter; CompositeFilter.AddToXml does the same for AndFilter and OrFilter. No Composite label despite AndFilter/OrFilter/NotFilter over CompositeFilter's TestFilter[] Filters: the Component TestFilter is declared in framework/Internal/TestFilter.cs, one level above this directory, so rule 3 blocks it."
+    },
+    {
+      "path": "src/NUnitFramework/framework/Constraints/Comparers",
+      "patterns": [],
+      "notes": "Deliberate negative, and the hardest one here: a chain of responsibility implemented without objects. NUnit tries ArraysComparer, DictionariesComparer, EnumerablesComparer, StringsComparer, NumericsComparer, EquatablesComparer, StructuralComparer and a dozen more in turn until one returns something other than EqualMethodResult.TypesNotSupported - but every comparer is an internal static class, so there is no Handler abstraction, no successor reference and no instance to hold one. ComparisonState is a ref struct threading recursion depth. Nothing here is a GoF collaboration."
+    },
+    {
+      "path": "src/NUnitFramework/framework/Internal/Builders",
+      "patterns": [],
+      "notes": "Deliberate negative, chosen for rule 1: a directory named Builders that earns no Builder label. NUnitTestCaseBuilder, NUnitTestFixtureBuilder, NamespaceTreeBuilder, DefaultSuiteBuilder and DefaultTestCaseBuilder each construct Test objects in one pass, with no abstract builder declaring a family of steps and no ConcreteBuilder handing back the product it assembled. CombinatorialStrategy, PairwiseStrategy and SequentialStrategy are a real Strategy family, but ICombiningStrategy lives in framework/Interfaces and no class here holds one, so rule 3 blocks that too; the remaining files (MethodInfoCache, ProviderCache, TestMetadataCache) are static caches."
+    }
+  ]
+}

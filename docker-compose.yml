@@ -1,0 +1,85 @@
+# Reproduction of the thesis results, one command per experiment.
+#
+#   docker compose run --rm structural   # tables 7.1 / 7.2 -> out/nepreverjeno.json
+#   docker compose run --rm semantic     # table 7.3        -> out/preverjeno.json
+#
+# Every service shares one image, so the first run builds it and the rest start instantly.
+# Reports are written to ./out on the host.
+#
+# Each service bakes its subcommand into `entrypoint` rather than `command`:
+# arguments given to `docker compose run` REPLACE a service's command but are
+# APPENDED to its entrypoint, so `docker compose run --rm semantic
+# --verify-parallelism 16` extends the documented command line instead of
+# silently becoming a different one.
+#
+# Every service but `help` sits in the `cli` profile, so `docker compose up`
+# starts only `help` instead of launching all of them at once. `docker compose
+# run` enables the target service's profile by itself, so nothing else is needed
+# to reach them.
+name: design-pattern-detection
+
+x-repro: &repro
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: design-pattern-detection:repro
+  init: true
+  profiles: ["cli"]
+  volumes:
+    - ./out:/out
+  environment:
+    # Only the reviewer needs a key; the structural run needs none. Supply it
+    # on the command line (-e GEMINI_API_KEY=...) or in a .env file next to this one
+    GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    VERIFY_MODEL: ${VERIFY_MODEL:-gemini-3.7-flash}
+    VERIFY_CACHE: ${VERIFY_CACHE:-}
+
+services:
+  structural:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "structural"]
+
+  semantic:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "semantic"]
+
+  all:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "all"]
+
+  examples:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "examples"]
+
+  # What review changed, with a 95% confidence interval on each change
+  analyze:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "analyze"]
+
+  tests:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "tests"]
+
+  # Either CLI, driven directly:
+  #   docker compose run --rm scan https://github.com/owner/repo --report /out/scan.json
+  #   docker compose run --rm eval nlog-v6.1.4 --report /out/nlog.json
+  scan:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "scan"]
+  eval:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "eval"]
+
+  shell:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "shell"]
+    stdin_open: true
+    tty: true
+
+  # The only service without a profile: what `docker compose up` runs.
+  help:
+    <<: *repro
+    entrypoint: ["/usr/local/bin/entrypoint.sh", "help"]
+    profiles: []

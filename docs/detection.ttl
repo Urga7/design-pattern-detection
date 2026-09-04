@@ -1,0 +1,140 @@
+@prefix det:     <https://urga7.github.io/design-pattern-detection/detection.ttl#> .
+@prefix src:     <https://urga7.github.io/design-pattern-detection/vocab.ttl#> .
+@prefix fdp:     <https://dejanl.github.io/FDP/FDP.ttl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://urga7.github.io/design-pattern-detection/detection.ttl> a owl:Ontology ;
+    rdfs:label "Design-pattern detection findings"@en ;
+    dcterms:description """What one scan found: an occurrence per detected pattern, a role binding per
+        participant, and the two links that make the finding joinable - one into the scanned code, one into
+        the FDP catalogue."""@en ;
+    dcterms:creator "Urban Gajšek" ;
+    rdfs:seeAlso <https://urga7.github.io/design-pattern-detection/vocab.ttl> ,
+                 <https://dejanl.github.io/formal-design-patterns/FDP.ttl> ;
+    rdfs:comment """The bridge layer, and the only one of the three that names both sides: the source vocabulary
+        knows nothing of patterns, FDP nothing of code. A finding here says "this type, in this scan, fills that
+        participant of that pattern"."""@en .
+
+#################################################################
+#    Classes
+#################################################################
+
+det:Scan a owl:Class ;
+    rdfs:label "Scan"@en ;
+    rdfs:comment """One run of the detectors over one set of source files. Present so that findings from
+        several scans can be merged into one graph and still be told apart."""@en .
+
+det:PatternOccurrence a owl:Class ;
+    rdfs:label "Pattern occurrence"@en ;
+    rdfs:comment """One detected instance of one pattern: the rows of a detector's SPARQL query that
+        agreed on the same participants, taken together."""@en .
+
+det:RoleBinding a owl:Class ;
+    rdfs:label "Role binding"@en ;
+    rdfs:comment """One role of one occurrence, filled by one type. Reified because the same type may
+        fill different roles in different occurrences."""@en .
+
+
+#################################################################
+#    Scan
+#################################################################
+
+det:hasOccurrence a owl:ObjectProperty ;
+    rdfs:domain det:Scan ; rdfs:range det:PatternOccurrence ;
+    rdfs:label "has occurrence"@en ;
+    rdfs:comment "Every finding of the scan, so the whole graph is reachable from one node."@en .
+
+det:fileCount a owl:DatatypeProperty ;
+    rdfs:domain det:Scan ; rdfs:range xsd:integer ;
+    rdfs:label "file count"@en ;
+    rdfs:comment "How many source files were read. A recall figure means little without it."@en .
+
+det:tool a owl:DatatypeProperty ;
+    rdfs:domain det:Scan ; rdfs:range xsd:string ;
+    rdfs:label "tool"@en ;
+    rdfs:comment "Name and version of the detector that produced these findings."@en .
+
+
+#################################################################
+#    Occurrence
+#################################################################
+
+det:pattern a owl:ObjectProperty ;
+    rdfs:domain det:PatternOccurrence ; rdfs:range fdp:DesignPattern ;
+    rdfs:label "pattern"@en ;
+    rdfs:comment """The FDP individual for the pattern that was detected. Absent for a pattern FDP does
+        not model - Interpreter - which is why det:patternName is asserted unconditionally beside it."""@en .
+
+det:patternName a owl:DatatypeProperty ;
+    rdfs:domain det:PatternOccurrence ; rdfs:range xsd:string ;
+    rdfs:label "pattern name"@en ;
+    rdfs:comment "The detector's own name for the pattern, always present."@en .
+
+det:hasRole a owl:ObjectProperty ;
+    rdfs:domain det:PatternOccurrence ; rdfs:range det:RoleBinding ;
+    rdfs:label "has role"@en .
+
+det:verdict a owl:DatatypeProperty ;
+    rdfs:domain det:PatternOccurrence ; rdfs:range xsd:string ;
+    rdfs:label "verdict"@en ;
+    rdfs:comment """A language model's ruling on the match - "accepted" or "rejected" - present only when the scan
+        was reviewed. A rejected occurrence still exports when the run kept it."""@en .
+
+det:rationale a owl:DatatypeProperty ;
+    rdfs:domain det:PatternOccurrence ; rdfs:range xsd:string ;
+    rdfs:label "rationale"@en ;
+    rdfs:comment "The reviewer's stated reason for its verdict."@en .
+
+det:reviewedBy a owl:DatatypeProperty ;
+    rdfs:domain det:PatternOccurrence ; rdfs:range xsd:string ;
+    rdfs:label "reviewed by"@en ;
+    rdfs:comment "Which model ruled. The same match can be reviewed differently by different reviewers."@en .
+
+
+#################################################################
+#    Role binding
+#################################################################
+
+det:role a owl:DatatypeProperty ;
+    rdfs:domain det:RoleBinding ; rdfs:range xsd:string ;
+    rdfs:label "role"@en ;
+    rdfs:comment """The detector's own name for the role, which is the SPARQL variable its query binds ("adaptee").
+        Kept beside det:playsRole, since a query reads best against the code and FDP names after the catalogue."""@en .
+
+det:filledBy a owl:ObjectProperty ;
+    rdfs:domain det:RoleBinding ; rdfs:range src:Type ;
+    rdfs:label "filled by"@en ;
+    rdfs:comment """The scanned type playing the role - a node of the scan graph, so a findings file loaded next to
+        a graph dump resolves to the facts the finding came from."""@en .
+
+det:playsRole a owl:ObjectProperty ;
+    rdfs:domain det:RoleBinding ; rdfs:range fdp:Participant ;
+    rdfs:label "plays role"@en ;
+    rdfs:comment """The FDP participant the type fills - the join edge into the catalogue. Absent for a role FDP
+        names no participant for, such as Factory Method's factory method: FDP admits only classes, objects and
+        interfaces as participants."""@en .
+
+
+#################################################################
+#    Provenance of a scanned node
+#################################################################
+
+det:declaredIn a owl:DatatypeProperty ;
+    rdfs:domain src:Type ; rdfs:range xsd:anyURI ;
+    rdfs:label "declared in"@en ;
+    rdfs:comment """The file declaring the type, as a file: URI. Provenance lives here rather than in the source
+        vocabulary, whose graph is joined over and where a per-node file literal is only weight."""@en .
+
+det:startLine a owl:DatatypeProperty ;
+    rdfs:domain src:Type ; rdfs:range xsd:integer ;
+    rdfs:label "start line"@en ;
+    rdfs:comment "First line of the declaration, 1-based and inclusive."@en .
+
+det:endLine a owl:DatatypeProperty ;
+    rdfs:domain src:Type ; rdfs:range xsd:integer ;
+    rdfs:label "end line"@en ;
+    rdfs:comment "Last line of the declaration, 1-based and inclusive."@en .

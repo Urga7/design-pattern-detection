@@ -1,0 +1,46 @@
+{
+  "corpus": "https://github.com/NLog/NLog/tree/v6.1.4",
+  "commit": "a342b92bf5382f108133296098348691f2f29fb1",
+  "units": [
+    {
+      "path": "src/NLog/Targets",
+      "patterns": ["Decorator", "Composite", "Template Method", "Strategy"],
+      "notes": "Decorator: WrapperTargetBase : Target wraps a 'Target? WrappedTarget' PROPERTY and forwards overrides (FlushAsync -> WrappedTarget.Flush); concrete decorators in Wrappers/. Composite: CompoundTargetBase : Target holds IList<Target> Targets and Write/FlushAsync iterate the children (FallbackGroupTarget, SplitGroupTarget, ...). Template Method: Target's public write path calls protected virtual/abstract Write overloads implemented by subclasses. Strategy: FileTarget delegates through an IFileArchiveHandler field (Disabled/Rolling/Legacy/Zero handlers) and ColoredConsoleTarget through an IColoredConsolePrinter field (Ansi/System printers), both selected at initialization."
+    },
+    {
+      "path": "src/NLog/Conditions",
+      "patterns": ["Interpreter", "Template Method"],
+      "notes": "Interpreter: abstract ConditionExpression AST with protected abstract EvaluateNode(LogEventInfo); nonterminals (And/Or/Not/Relational) hold sub-expressions of the abstraction and recurse, terminals (Literal/Level/Message/LoggerName) evaluate the context; ConditionParser builds the tree. Template Method: concrete Evaluate wraps abstract EvaluateNode in exception handling."
+    },
+    {
+      "path": "src/NLog/LayoutRenderers",
+      "patterns": ["Template Method"],
+      "notes": "Template Method: LayoutRenderer.Render is the concrete skeleton calling protected abstract Append(StringBuilder, LogEventInfo). NOT Decorator at v6.1.4: WrapperLayoutRendererBase extends LayoutRenderer but wraps 'Layout Inner' - a DIFFERENT abstraction, declared outside this unit - so the wrapper-extends-what-it-wraps structure is absent."
+    },
+    {
+      "path": "src/NLog/Layouts",
+      "patterns": ["Composite", "Decorator", "Template Method"],
+      "notes": "Composite: CompoundLayout : Layout holds IList<Layout> and GetFormattedMessage iterates the children. Decorator: LayoutWithHeaderAndFooter : Layout wraps a 'Layout Layout' property and its GetFormattedMessage override forwards to Layout.Render. Template Method: Layout.Render (caching/threading skeleton) calls protected abstract GetFormattedMessage."
+    },
+    {
+      "path": "src/NLog/Filters",
+      "patterns": ["Template Method"],
+      "notes": "Template Method: Filter.GetFilterResult calls protected abstract Check(LogEventInfo); concrete filters (WhenContains/WhenEqual/WhenRepeated/...) implement it. Not Strategy: the context holding filters (LoggingRule) is outside the unit."
+    },
+    {
+      "path": "src/NLog/Time",
+      "patterns": ["Template Method"],
+      "notes": "Template Method, property-accessor form: CachedTimeSource.Time is the concrete caching skeleton deferring the protected abstract FreshTime step to Fast/Accurate subclasses. Not Singleton: TimeSource.Current is a settable static of the abstraction, not an enforced sole instance."
+    },
+    {
+      "path": "src/NLog/MessageTemplates",
+      "patterns": [],
+      "notes": "Deliberate negative: sealed parser/formatter classes; the only interface implementations are flat (IValueFormatter) and IEnumerable is BCL metadata, so no in-unit GoF collaboration."
+    },
+    {
+      "path": "src/NLog/Common",
+      "patterns": [],
+      "notes": "Deliberate negative: delegates, helper statics (AsyncHelpers, InternalLogger) and one context interface; no abstraction with collaborating participants."
+    }
+  ]
+}

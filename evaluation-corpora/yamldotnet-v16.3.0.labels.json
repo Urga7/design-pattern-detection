@@ -1,0 +1,24 @@
+{
+  "units": [
+    {
+      "path": "YamlDotNet/RepresentationModel",
+      "patterns": ["Visitor", "Composite", "Template Method"],
+      "notes": "Visitor: YamlNode declares abstract Accept(IYamlVisitor) and each concrete node overrides it, while IYamlVisitor declares Visit(YamlScalarNode), Visit(YamlSequenceNode) and Visit(YamlMappingNode) - closed double dispatch, with YamlVisitor and YamlVisitorBase as the visitor implementations. Composite: YamlNode is the Component, YamlSequenceNode holds IList<YamlNode> Children and YamlMappingNode an IOrderedDictionary<YamlNode, YamlNode>, YamlScalarNode is the leaf. Template Method: YamlNode.ToString() is the concrete skeleton - build a RecursionLevel, call the abstract ToString(RecursionLevel) step - which every concrete node supplies."
+    },
+    {
+      "path": "YamlDotNet/Core",
+      "patterns": ["Decorator", "Visitor"],
+      "notes": "Decorator: MergingParser implements IParser, holds one IParser innerParser and forwards MoveNext/Current through it while merging alias events; Parser is the undecorated component (it wraps an IScanner, a different abstraction). Visitor: ParsingEvent declares abstract Accept(IParsingEventVisitor) and every event overrides it, IParsingEventVisitor declares one Visit overload per concrete event, and MergingParser's nested ParsingEventCloner is the concrete visitor - it calls e.Accept(this) and implements all eleven visits."
+    },
+    {
+      "path": "YamlDotNet/Core/Tokens",
+      "patterns": [],
+      "notes": "Deliberate hard negative, and a subset of the YamlDotNet/Core unit. Token is an abstract base with no abstract or virtual members at all; its two dozen subclasses only carry scanner positions and payload data. No Accept, no collaborator, no deferred step - an inheritance hierarchy that is not a pattern."
+    },
+    {
+      "path": "YamlDotNet/Core/ObjectPool",
+      "patterns": [],
+      "notes": "Deliberate negative, and a subset of the YamlDotNet/Core unit. ObjectPool<T> is abstract with only abstract members and DefaultObjectPool<T> is its single implementation, so there is no template to defer. IPooledObjectPolicy<T> looks like a Strategy, but DefaultObjectPool never holds one: the constructor extracts Func<T> and Func<T, bool> delegates from the policy and stores those, the same delegate-shaped dispatch that leaves MediatR unlabelled."
+    }
+  ]
+}

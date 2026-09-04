@@ -1,0 +1,29 @@
+{
+  "units": [
+    {
+      "path": "src/Serilog/Core",
+      "patterns": ["Decorator", "Composite", "Strategy"],
+      "notes": "Three patterns over two Components. Decorator: ILogEventSink with ConditionalSink, RestrictedSink, FilteringSink, FailureListenerSink and SecondaryLoggerSink each holding one ILogEventSink and forwarding Emit through it while adding behaviour; ILogEventEnricher with ConditionalEnricher likewise. Composite: AggregateSink, SafeAggregateSink and DisposingAggregateSink hold ILogEventSink[] and fan Emit out to each, with Logger and BatchingSink as leaves; SafeAggregateEnricher holds ILogEventEnricher[] over EmptyEnricher, FixedPropertyEnricher and PropertyEnricher leaves. Strategy: Logger takes an ILogEventEnricher through its constructor, keeps it in _enricher and calls Enrich on it when dispatching, with the five Core/Enrichers implementations interchangeable behind that interface."
+    },
+    {
+      "path": "src/Serilog/Events",
+      "patterns": ["Composite", "Template Method"],
+      "notes": "Composite: LogEventPropertyValue is the Component with abstract Render; SequenceValue holds LogEventPropertyValue[] and renders each, DictionaryValue holds a dictionary of them, ScalarValue is the leaf. Template Method: LogEventPropertyValue.ToString(format, provider) is the concrete skeleton - rent a writer, call the abstract Render step, return the text - and every subclass supplies Render."
+    },
+    {
+      "path": "src/Serilog/Parsing",
+      "patterns": [],
+      "notes": "Deliberate hard negative. MessageTemplateToken is an abstract hierarchy with TextToken and PropertyToken overriding Render, and MessageTemplateParser instantiates them - but no token holds another (no Composite, no Interpreter nonterminal), the abstraction declares only abstract members (no Template Method skeleton), the parser keeps no token instance to delegate to (no Strategy), and there is no abstract creator hierarchy (no Factory Method)."
+    },
+    {
+      "path": "src/Serilog/Rendering",
+      "patterns": [],
+      "notes": "Deliberate negative. Casing, MessageTemplateRenderer and Padding are static helper classes; ReusableStringWriter is a pooled StringWriter subclass. No abstraction is implemented by two collaborating participants."
+    },
+    {
+      "path": "src/Serilog/Debugging",
+      "patterns": [],
+      "notes": "Deliberate negative. SelfLog is a static class holding an Action<string> output hook, LoggingFailedException is an exception type, and the nested SelfLogFailureListener implements an out-of-unit interface with no collaborator here."
+    }
+  ]
+}

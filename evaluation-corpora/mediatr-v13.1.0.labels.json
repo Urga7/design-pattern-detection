@@ -1,0 +1,21 @@
+{
+  "corpus": "https://github.com/jbogard/MediatR/tree/v13.1.0",
+  "commit": "dfdd5566e0a10680657c7db2f427db4d476ee9f1",
+  "units": [
+    {
+      "path": "src/MediatR",
+      "patterns": ["Strategy"],
+      "notes": "Strategy: Mediator holds a ctor-injected INotificationPublisher _publisher field and PublishCore delegates through it; ForeachAwaitPublisher and TaskWhenAllPublisher are the interchangeable concrete strategies - all participants in-unit. Deliberately NOT labeled Mediator/Chain of Responsibility despite the library's name: handlers are resolved from IServiceProvider and the pipeline chains via RequestHandlerDelegate delegates, so no colleague-holds-mediator and no successor-of-own-abstraction structure exists (structure over branding). Wrappers/ are pure abstract dispatch hierarchies - no concrete-calls-abstract skeleton, so no Template Method."
+    },
+    {
+      "path": "src/MediatR.Contracts",
+      "patterns": [],
+      "notes": "Deliberate negative: four marker interfaces (IRequest, INotification, IStreamRequest) and the Unit struct; no collaboration at all."
+    },
+    {
+      "path": "src/MediatR/Licensing",
+      "patterns": [],
+      "notes": "Deliberate negative nested inside the src/MediatR unit (overlap intentional - a detector firing here is penalized in both units): License/LicenseAccessor/LicenseValidator plus enums; LicenseAccessor caches a Lazy<License> of ANOTHER type, so not Singleton."
+    }
+  ]
+}

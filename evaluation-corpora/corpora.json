@@ -1,0 +1,40 @@
+{
+  "corpora": [
+    {
+      "name": "MediatR v13.1.0",
+      "source": "https://github.com/jbogard/MediatR/tree/v13.1.0",
+      "groundTruth": "mediatr-v13.1.0.labels.json"
+    },
+    {
+      "name": "NLog v6.1.4",
+      "source": "https://github.com/NLog/NLog/tree/v6.1.4",
+      "groundTruth": "nlog-v6.1.4.labels.json"
+    },
+    {
+      "name": "Serilog v4.2.0",
+      "source": "https://github.com/serilog/serilog/tree/v4.2.0",
+      "groundTruth": "serilog-v4.2.0.labels.json"
+    },
+    {
+      "name": "YamlDotNet v16.3.0",
+      "source": "https://github.com/aaubry/YamlDotNet/tree/v16.3.0",
+      "groundTruth": "yamldotnet-v16.3.0.labels.json"
+    },
+    {
+      "name": "log4net 3.3.2",
+      "source": "https://github.com/apache/logging-log4net/tree/rel/3.3.2",
+      "groundTruth": "log4net-3.3.2.labels.json"
+    },
+    {
+      "name": "Castle.Core v5.2.1",
+      "source": "https://github.com/castleproject/Core/tree/v5.2.1",
+      "groundTruth": "castle-core-v5.2.1.labels.json"
+    },
+    {
+      "name": "NUnit v4.6.1",
+      "source": "https://github.com/nunit/nunit/tree/v4.6.1",
+      "groundTruth": "nunit-v4.6.1.labels.json",
+      "queryTimeout": 90
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "units": [
+    {
+      "path": "src/log4net/Filter",
+      "patterns": ["Chain of Responsibility"],
+      "notes": "IFilter is the Handler: it declares Decide(LoggingEvent) returning FilterDecision and carries the self-typed successor IFilter? Next itself, FilterSkeleton implements both, and DenyAllFilter, LevelMatchFilter, LevelRangeFilter, LoggerMatchFilter, MdcFilter, NdcFilter, PropertyFilter and StringMatchFilter each override Decide to Accept, Deny or return Neutral - which is precisely 'I do not handle this, ask my successor'. Every participant is in this directory; only the loop that walks Next lives elsewhere (AppenderSkeleton.FilterEvent), and GoF never requires the Client in-unit."
+    },
+    {
+      "path": "src/log4net/Appender",
+      "patterns": ["Template Method", "Composite"],
+      "notes": "Template Method: AppenderSkeleton.DoAppend(LoggingEvent) is the fixed skeleton - check closed, evaluate filters, render through the layout - deferring the one varying step to protected abstract void Append(LoggingEvent), which eighteen appenders supply (ConsoleAppender, FileAppender, MemoryAppender, TraceAppender, UdpAppender, ...); BufferingAppenderSkeleton repeats the split for SendBuffer. Composite: IAppender is the Component with DoAppend, ForwardingAppender and BufferingForwardingAppender implement it while managing a child collection through AddAppender/RemoveAppender/Appenders and fan each event out to all of them, and the ordinary appenders are the leaves."
+    },
+    {
+      "path": "src/log4net/Layout",
+      "patterns": ["Template Method", "Adapter"],
+      "notes": "Template Method: LayoutSkeleton implements ILayout with abstract Format, supplied by SimpleLayout, PatternLayout, ExceptionLayout and XmlLayoutBase; Layout/Pattern repeats it twice more, PatternLayoutConverter.Convert deferring to abstract Convert(TextWriter, LoggingEvent) across two dozen converters and NamedPatternConverter deferring GetFullyQualifiedName. Adapter: Layout2RawLayoutAdapter implements the Target IRawLayout - object Format(LoggingEvent) - while holding an ILayout, and its override translates the call by writing into a StringWriter and returning the string, adapting a writer-based interface to a value-returning one. RawPropertyLayout and RawTimeStampLayout are the unwrapped IRawLayout implementations it sits beside."
+    },
+    {
+      "path": "src/log4net/Repository/Hierarchy",
+      "patterns": ["Factory Method"],
+      "notes": "ILoggerFactory is the Creator, declaring Logger CreateLogger(ILoggerRepository, string?); DefaultLoggerFactory is the ConcreteCreator and returns RootLogger for the anonymous root and its nested LoggerImpl otherwise - both direct subclasses of the abstract Product Logger. Hierarchy is the client: it holds an ILoggerFactory and calls CreateLogger whenever a name is first requested, which is what makes the creation step substitutable rather than hard-wired."
+    },
+    {
+      "path": "src/log4net/Core",
+      "patterns": ["Iterator"],
+      "notes": "The one real-code Iterator found so far, and it exists because log4net is a Java port: LevelCollection declares its own nested interface ILevelCollectionEnumerator with Level Current and bool MoveNext(), the nested Enumerator class implements it while holding the LevelCollection it walks plus an index and a version stamp, and LevelCollection.GetEnumerator() returns the interface while constructing the Enumerator. Idiomatic C# hands out the BCL IEnumerator<T> instead, whose members live in metadata and are therefore invisible to the graph - which is why every other corpus leaves Iterator unlabelled. ReadOnlyLevelCollection extends the aggregate and forwards GetEnumerator to it."
+    },
+    {
+      "path": "src/log4net/Util",
+      "patterns": ["Singleton", "Template Method"],
+      "notes": "Singleton four times over, in the Null Object form: NullEnumerator, NullDictionaryEnumerator, EmptyCollection and EmptyDictionary each hide their constructor (private X()) and expose the single shared instance as public static X Instance { get; } = new(). They are stateless and immutable, so being the only one of their kind is the intent rather than an accident of caching. Template Method: PatternConverter.Format(TextWriter, object?) is the skeleton - apply the FormattingInfo padding and truncation around the value - deferring the value itself to the abstract Convert(TextWriter, object?), which the eleven converters in Util/PatternStringConverters supply. Deliberately no Chain of Responsibility label despite PatternConverter carrying a self-typed Next and SetNext: every link in that list runs and contributes its part of the output, so nothing is ever handled by one link and passed on by another - it is a pipeline, not a chain. The TextWriterAdapter/QuietTextWriter/ProtectCloseTextWriter stack is a genuine Decorator run but its Component is the BCL TextWriter, which has no members in the graph, so it cannot be expressed here."
+    },
+    {
+      "path": "src/log4net/Plugin",
+      "patterns": ["Iterator"],
+      "notes": "The same Java-port collection idiom as Core, in five files: PluginCollection declares the nested IPluginCollectionEnumerator interface with its own Current and MoveNext, the nested Enumerator implements it while holding the PluginCollection, and GetEnumerator() hands the interface out. Deliberately no Observer label: PluginMap holds a ConcurrentDictionary<string, IPlugin> and its Add calls plugin.Attach(repository), which is registration wiring done once, not a subject broadcasting a state change to subscribers - the detection there is a false positive."
+    },
+    {
+      "path": "src/log4net/DateFormatter",
+      "patterns": ["Template Method"],
+      "notes": "AbsoluteTimeDateFormatter.FormatDate(DateTime, TextWriter) is the skeleton: it formats the whole timestamp, appends the millisecond field and caches the result, deferring the date-and-time part to protected virtual FormatDateWithoutMillis(DateTime, StringBuilder), which DateTimeDateFormatter and Iso8601DateFormatter each override (both calling base first). The variant GoF calls a hook operation - a default step on a concrete base rather than an abstract step on an abstract class - so the label is deliberate: it measures whether the detector reads that variant. SimpleDateFormatter is the sibling that implements IDateFormatter directly and defers nothing."
+    },
+    {
+      "path": "src/log4net/ObjectRenderer",
+      "patterns": [],
+      "notes": "Deliberate negative, and a hard one. RendererMap holds ConcurrentDictionary<Type, IObjectRenderer> and FindAndRender calls Get(type).RenderObject(this, obj, writer), which is registry lookup, not a GoF collaboration: nothing subscribes or is notified (no Observer), no Context keeps one chosen renderer (no Strategy), Get never instantiates a renderer so nothing is pooled (no Flyweight), and DefaultRenderer is the single implementation of a one-method interface. Any detection here scores as a false positive."
+    }
+  ]
+}

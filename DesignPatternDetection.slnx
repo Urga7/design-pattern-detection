@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="DesignPatternDetection/DesignPatternDetection.csproj" />
+  <Project Path="DesignPatternDetection.Evaluation/DesignPatternDetection.Evaluation.csproj" />
+  <Project Path="DesignPatternDetection.Tests/DesignPatternDetection.Tests.csproj" />
+</Solution>

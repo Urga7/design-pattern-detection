@@ -1,0 +1,29 @@
+{
+  "units": [
+    {
+      "path": "src/Castle.Core/Core/Logging",
+      "patterns": ["Factory Method", "Template Method"],
+      "notes": "Factory Method twice over the same Product. ILoggerFactory/AbstractLoggerFactory declare abstract ILogger Create(string) and Create(string, LoggerLevel), and ConsoleFactory, NullLogFactory, StreamLoggerFactory, TraceLoggerFactory and DiagnosticsLoggerFactory each override them to build their own logger; LevelFilteredLogger repeats the shape with abstract ILogger CreateChildLogger(string), which every concrete logger fills by constructing one of itself. Template Method: LevelFilteredLogger holds the whole Trace/Debug/Info/Warn/Error/Fatal surface as concrete methods that level-check and then call the single protected abstract void Log(LoggerLevel, string, string, Exception), supplied by ConsoleLogger, StreamLogger, TraceLogger and DiagnosticsLogger."
+    },
+    {
+      "path": "src/Castle.Core/Core/Resource",
+      "patterns": ["Factory Method"],
+      "notes": "IResourceFactory is the Creator, declaring IResource Create(CustomUri) and Create(CustomUri, string) beside the Accept(CustomUri) predicate that picks the factory; FileResourceFactory, AssemblyResourceFactory, ConfigResourceFactory and UncResourceFactory are the ConcreteCreators, each returning the abstract Product IResource while constructing its own FileResource, AssemblyResource, ConfigResource or UncResource. IResource.CreateRelative(string) is a second, product-side factory method: AbstractResource leaves it abstract and each concrete resource overrides it by constructing another of its own kind."
+    },
+    {
+      "path": "src/Castle.Core/DynamicProxy/Generators/Emitters/SimpleAST",
+      "patterns": ["Interpreter", "Decorator"],
+      "notes": "Interpreter: the grammar is the IL expression tree. IExpression is the AbstractExpression and Emit(ILGenerator) the interpret operation, with the ILGenerator as the Context; LiteralIntExpression, LiteralStringExpression, LiteralBoolExpression, NullExpression, TypeTokenExpression and MethodTokenExpression are TerminalExpressions that emit opcodes directly, while NullCoalescingOperatorExpression (expression, @default), IfNullExpression, ConvertExpression and MethodInvocationExpression are NonterminalExpressions holding sub-expressions typed as the abstraction and emitting them in order. Decorator: Reference is an abstract component with LoadReference/StoreReference/LoadAddressOfReference, FieldReference and SelfReference are undecorated components, and AsTypeReference holds one Reference and overrides LoadReference to forward and then add an Isinst cast."
+    },
+    {
+      "path": "src/Castle.Core/Core/Configuration",
+      "patterns": [],
+      "notes": "Deliberate negative: it is a tree without being a Composite. IConfiguration exposes ConfigurationCollection Children on every node, AbstractConfiguration implements it and MutableConfiguration is its only subclass - so there is no Leaf/Composite split, no operation a parent fans out to its children, and no abstract member for a subclass to fill (Children, Attributes and GetValue are all virtual with working bodies). A uniform DOM-style node, like YamlDotNet's Token hierarchy, is inheritance rather than collaboration."
+    },
+    {
+      "path": "src/Castle.Core/DynamicProxy/Tokens",
+      "patterns": [],
+      "notes": "Deliberate negative. Eight internal static classes (InvocationMethods, MethodBaseMethods, TypeMethods, DelegateMethods, ...) whose entire content is static readonly MethodInfo and ConstructorInfo constants resolved by reflection, cached for the IL emitters. No instances, no hierarchy, no member holds another type of this unit: there is nothing for any detector to bind."
+    }
+  ]
+}

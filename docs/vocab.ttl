@@ -1,0 +1,171 @@
+@prefix src:     <https://urga7.github.io/design-pattern-detection/vocab.ttl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://urga7.github.io/design-pattern-detection/vocab.ttl> a owl:Ontology ;
+    rdfs:label "C# source-code vocabulary for design-pattern detection"@en ;
+    dcterms:description """The structural facts a C# codebase is reduced to before design patterns can be queried out of it."""@en ;
+    dcterms:creator "Urban Gajšek" ;
+    rdfs:seeAlso <https://dejanl.github.io/formal-design-patterns/FDP.ttl> ;
+    rdfs:comment """Companion to, and deliberately disjoint from, the FDP ontology. FDP describes the
+        pattern catalogue and defines no source-code terms; this vocabulary describes source code and
+        defines no pattern terms."""@en .
+
+#################################################################
+#    Classes
+#################################################################
+
+src:Type a owl:Class ;
+    rdfs:label "Type"@en ;
+    rdfs:comment "A type declared in the scanned source, or referred to by one."@en .
+
+src:Class a owl:Class ;
+    rdfs:subClassOf src:Type ;
+    rdfs:label "Class"@en ;
+    rdfs:comment "A class declared in the scanned source."@en .
+
+src:Interface a owl:Class ;
+    rdfs:subClassOf src:Type ;
+    rdfs:label "Interface"@en .
+
+src:Struct a owl:Class ;
+    rdfs:subClassOf src:Type ;
+    rdfs:label "Struct"@en .
+
+src:Member a owl:Class ;
+    rdfs:label "Member"@en ;
+    rdfs:comment "A constructor, method, property or field declared on a type."@en .
+
+src:Constructor a owl:Class ;
+    rdfs:subClassOf src:Member ;
+    rdfs:label "Constructor"@en .
+
+src:Method a owl:Class ;
+    rdfs:subClassOf src:Member ;
+    rdfs:label "Method"@en .
+
+src:Property a owl:Class ;
+    rdfs:subClassOf src:Member ;
+    rdfs:label "Property"@en .
+
+src:Field a owl:Class ;
+    rdfs:subClassOf src:Member ;
+    rdfs:label "Field"@en .
+
+src:Modifier a owl:Class ;
+    rdfs:label "Modifier"@en ;
+    rdfs:comment "A declared modifier, extended by what C# implies. For example, a bodiless member carries src:Abstract"@en .
+
+
+#################################################################
+#    Structure
+#################################################################
+
+src:extends a owl:ObjectProperty ;
+    rdfs:domain src:Type ; rdfs:range src:Type ;
+    rdfs:label "extends"@en ;
+    rdfs:comment "Exactly the explicit base list - base class and implemented interfaces alike."@en .
+
+src:hasConstructor a owl:ObjectProperty ;
+    rdfs:domain src:Type ; rdfs:range src:Constructor ;
+    rdfs:label "has constructor"@en .
+
+src:hasMethod a owl:ObjectProperty ;
+    rdfs:domain src:Type ; rdfs:range src:Method ;
+    rdfs:label "has method"@en .
+
+src:hasProperty a owl:ObjectProperty ;
+    rdfs:domain src:Type ; rdfs:range src:Property ;
+    rdfs:label "has property"@en .
+
+src:hasField a owl:ObjectProperty ;
+    rdfs:domain src:Type ; rdfs:range src:Field ;
+    rdfs:label "has field"@en .
+
+src:hasModifier a owl:ObjectProperty ;
+    rdfs:range src:Modifier ;
+    rdfs:label "has modifier"@en ;
+    rdfs:comment """Domain is left open on purpose: both types and members carry modifiers, and two
+        rdfs:domain axioms would assert their intersection rather than their union."""@en .
+
+
+#################################################################
+#    Signatures
+#################################################################
+
+src:returnsType a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Type ;
+    rdfs:label "returns type"@en ;
+    rdfs:comment "The declared type of a method's return value, or of a property or field."@en .
+
+src:hasParameterType a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Type ;
+    rdfs:label "has parameter type"@en ;
+    rdfs:comment "One fact per parameter of a method or constructor; parameter order is not modelled."@en .
+
+src:hasTypeArgument a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Type ;
+    rdfs:label "has type argument"@en ;
+    rdfs:comment """A generic argument or array element of the member's type, at every nesting depth: a
+        List<Tuple<Flyweight, string>> field carries the fact for the tuple and for both its elements.
+        This is how a detector sees what a collection holds, since the collection type itself resolves to
+        a single mangled name."""@en .
+
+
+#################################################################
+#    Behaviour
+#################################################################
+
+src:instantiates a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Type ;
+    rdfs:label "instantiates"@en ;
+    rdfs:comment """Every new T() in the body, plus MemberwiseClone(), which creates an instance of the
+        declaring type."""@en .
+
+src:invokes a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Type ;
+    rdfs:label "invokes"@en ;
+    rdfs:comment "The body calls a method whose declaring type is the object of this fact."@en .
+
+src:calls a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Member ;
+    rdfs:label "calls"@en ;
+    rdfs:comment """The body calls one specific source-declared member. Naming a property counts, since
+        reading one runs its accessor."""@en .
+
+src:delegatesTo a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Member ;
+    rdfs:label "delegates to"@en ;
+    rdfs:comment """The body calls through the instance held in a field or property - its own or an
+        inherited one. Inheritance is what lets a detector see forwarding through a base-class field, and
+        this fact is the positive form of the wrapper patterns' defining trait."""@en .
+
+src:returnsSelf a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Type ;
+    rdfs:label "returns self"@en ;
+    rdfs:comment """The body returns this - a fluent member. Distinguished from src:instantiates because
+        returning yourself is not copying yourself."""@en .
+
+src:assignsField a owl:ObjectProperty ;
+    rdfs:domain src:Member ; rdfs:range src:Field ;
+    rdfs:label "assigns field"@en ;
+    rdfs:comment "The body assigns a source-declared field - its own or an inherited one."@en .
+
+
+#################################################################
+#    Modifiers
+#################################################################
+
+src:Public    a src:Modifier ; rdfs:label "public"@en .
+src:Private   a src:Modifier ; rdfs:label "private"@en .
+src:Protected a src:Modifier ; rdfs:label "protected"@en .
+src:Internal  a src:Modifier ; rdfs:label "internal"@en .
+src:Static    a src:Modifier ; rdfs:label "static"@en .
+src:Abstract  a src:Modifier ; rdfs:label "abstract"@en .
+src:Virtual   a src:Modifier ; rdfs:label "virtual"@en .
+src:Override  a src:Modifier ; rdfs:label "override"@en .
+src:Sealed    a src:Modifier ; rdfs:label "sealed"@en .
+src:ReadOnly  a src:Modifier ; rdfs:label "readonly"@en .
+src:Const     a src:Modifier ; rdfs:label "const"@en .
